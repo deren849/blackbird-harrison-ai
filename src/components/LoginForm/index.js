@@ -8,17 +8,50 @@ import Grid from '@mui/material/Grid';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
 import logo from '../../assets/logo.svg';
+import * as emailValidator from 'email-validator';
 
 
 export default function LoginForm() {
   const [showAlert, setShowAlert] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const validateForm = (event) => {
     event.preventDefault()
     const data = new FormData(event.currentTarget);
     const email = data.get('email');
     const password = data.get('password');
+   
+    let isValid = true;
 
     // Add validation code here
+    if (!email) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!emailValidator.validate(email)) {
+      setEmailError('Invalid email format');
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
+
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters long');
+      isValid = false;
+    } else if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecialChar) {
+      setPasswordError('Password must contain uppercase, lowercase, number, and special character');
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+    return isValid;
 
   }
 
@@ -29,8 +62,10 @@ export default function LoginForm() {
       email: data.get('email'),
       password: data.get('password'),
     });
-    validateForm(event);
-    setShowAlert("Login Successful");
+    const isFormValid = validateForm(event);
+    if (isFormValid) {
+      setShowAlert('Form submitted successfully!');
+    }
   };
 
   return (
@@ -87,6 +122,8 @@ export default function LoginForm() {
               name="email"
               autoComplete="email"
               autoFocus
+              error={Boolean(emailError)}
+              helperText={emailError}
             />
             <TextField
               margin="normal"
@@ -97,6 +134,8 @@ export default function LoginForm() {
               type="password"
               id="password"
               autoComplete="current-password"
+              error={Boolean(passwordError)}
+              helperText={passwordError}
             />
             <Button
               type="submit"
